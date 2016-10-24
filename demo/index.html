@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+</head>
+<body>
+    <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel="import" href="../../polymer/polymer.html" />
+    <link rel="import" href="../xenon-date-input.html" />
+
+    <demo-date></demo-date>
+    <dom-module id="demo-date">
+        <template>
+            <span>{{oneFiftyYears()}}</span> - <span>{{today()}}</span>
+            <xenon-date-input id="date1" mindate="{{oneFiftyYears()}}" maxdate="{{today()}}" label="enter date" required error-message="invalid date"></xenon-date-input>
+            <br /><br />
+            <span>{{sixtyDaysAgo()}}</span> - <span>{{sixtyDaysFromNow()}}</span>
+            <xenon-date-input id="date2" mindate="{{sixtyDaysAgo()}}" maxdate="{{sixtyDaysFromNow()}}" label="enter date" required error-message="invalid date"></xenon-date-input>
+        </template>
+        <script>
+            Polymer({
+                is: "demo-date",
+                today: function () {
+                    return new Date().toLocaleDateString();
+                },
+                oneFiftyYears: function () {
+                    var date = new Date();
+                    date.setFullYear(date.getFullYear() - 150);
+                    return date.toLocaleDateString();
+                },
+                sixtyDaysAgo: function () {
+                    var date = new Date();
+                    date.setDate(-60);
+                    return date.toLocaleDateString();
+                },
+                sixtyDaysFromNow: function () {
+                    var date = new Date();
+                    date.setDate(60);
+                    return date.toLocaleDateString();
+                },
+            })
+        </script>
+    </dom-module>
+    
+    <br />
+    <button onclick="submit()">submit</button>
+</body>
+</html>
+<script>
+    function submit() {
+        document.getElementById("date1").validate();
+        document.getElementById("date2").validate();
+    }
+</script>

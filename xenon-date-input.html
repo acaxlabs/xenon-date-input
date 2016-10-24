@@ -1,0 +1,103 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-input/all-imports.html" />
+<link rel="import" href="../iron-input/iron-input.html" />
+<link rel="import" href="../iron-form-element-behavior/iron-form-element-behavior.html">
+
+<dom-module id="xenon-date-input">
+    <template>
+        <paper-input-container id="container">
+            <label hidden$="[[!label]]">[[label]]</label>
+            <div class="horizontal layout">
+                <input is="iron-input"
+                       id="input"
+                       class="flex"
+                       aria-labelledby$="[[_ariaLabelledBy]]"
+                       aria-describedby$="[[_ariaDescribedBy]]"
+                       required$="[[required]]"
+                       bind-value="{{value}}"
+                       name$="[[name]]"
+                       disabled$="[[disabled]]"
+                       invalid="{{invalid}}"
+                       autofocus$="[[autofocus]]"
+                       inputmode$="[[inputmode]]"
+                       placeholder$="[[placeholder]]"
+                       readonly$="[[readonly]]"
+                       allowed-pattern="[[allowedpattern]]"
+                       maxlength$="[[length]]"
+                       prevent-invalid-input>
+            </div>
+            <template is="dom-if" if="[[errorMessage]]">
+                <paper-input-error id="error">[[errorMessage]]</paper-input-error>
+            </template>
+        </paper-input-container>
+    </template>
+    <script>
+        Polymer({
+            is: 'xenon-date-input',
+            behaviors: [
+              Polymer.PaperInputBehavior,
+              Polymer.IronValidatableBehavior,
+              Polymer.IronFormElementBehavior
+            ],
+            properties: {
+                value: { type: String, notify: true, observer: '_valueChanged' },
+                mask: { type: String, value: "##/##/####" },
+                regex: { type: String, value: "^(0[1-9]|1[012])[/](0[1-9]|[12][0-9]|3[01])[/][0-9]{4}$" },
+                mindate: String,
+                maxdate: String
+            },
+            validate: function () {
+                //not required return true
+                if (!this.required) return true;
+                //if value is null return
+                if (this.value == null) { this.$.container.invalid = true; return false; }
+                //length of value should match mask length
+                if (this.value.length != this.mask.length) { this.$.container.invalid = true; return false; }
+                //if this input has a reg pattern check it as part of validation
+                if (this.regex != null) {
+                    var pattern = new RegExp(this.regex);
+                    var valid = pattern.test(this.value);
+                    if (!valid) { this.$.container.invalid = true; return false; }
+                }
+                //now check date ranges
+                if (this.checkdate() == false) { this.$.container.invalid = true; return false; }
+                //regular iron input validation
+                return this.$.input.validate();
+            },
+            _valueChanged: function (newValue, oldValue) {
+                if (newValue == null) return;
+                
+                //check for invalid format from an auto populate
+                    var myRegexp = /(\d{4}-\d{2}-\d{2})/g;
+                    var match = myRegexp.exec(newValue);
+                    if (match) {
+                        var date = match[0];
+                        var dateArr = date.split("-");
+                        newValue = dateArr[1].concat("-", dateArr[2], "-", dateArr[0]);
+                    }
+                // remove all incoming non-numeric characters
+                newValue = newValue.replace(/[^0-9]/g, "");
+                // splice the separators back into the string
+                for (var i = 0; i < this.mask.length; i++) {
+                    if (i > newValue.length) break;
+                    var char = this.mask.charAt(i);
+                    if (char != "#")
+                        newValue = newValue.slice(0, i) + char + newValue.slice(i);
+                }
+                // if the new string is longer than the mask, trim it
+                if (newValue.length > this.mask.length)
+                    newValue = newValue.slice(0, this.mask.length)
+                // if this string ends in a separator, trim it
+                this.value = newValue.replace(/[^0-9]$/, "");
+            },
+            checkdate: function () {
+                if (this.mindate == null || this.maxdate == null) return false;
+
+                var enteredDate = new Date(this.value);
+                var minDate = new Date(this.mindate);
+                var maxDate = new Date(this.maxdate);
+                if (enteredDate < minDate || enteredDate > maxDate) { return false; }
+            }
+        })
+    </script>
+</dom-module>

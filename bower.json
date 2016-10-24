@@ -1,0 +1,18 @@
+{
+  "name": "xenon-date-input",
+  "version": "1.0.0",
+  "authors": [
+    "Matt Bruce <matt.bruce@acaexpress.com>"
+  ],
+  "description": "",
+  "main": "xenon-date-input.html",
+  "license": "MIT",
+  "homepage": "https://github.com/acaxlabs/xenon-date-input.git",
+  "private": true,
+  "ignore": [],
+  "dependencies": {
+    "paper-input": "PolymerElements/paper-input#^1.1.11",
+    "iron-input": "PolymerElements/iron-input#^1.0.10",
+    "iron-form-element-behavior": "PolymerElements/iron-form-element-behavior#^1.0.6"
+  }
+}
