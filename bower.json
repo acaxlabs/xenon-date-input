@@ -2,9 +2,9 @@
   "name": "xenon-date-input",
   "version": "1.0.0",
   "authors": [
-    "Matt Bruce <matt.bruce@acaexpress.com>"
+    "ACA[X]Labs"
   ],
-  "description": "",
+  "description": "Allows for inputs to masked to a date format (MM/dd/yyyy)",
   "main": "xenon-date-input.html",
   "license": "MIT",
   "homepage": "https://github.com/acaxlabs/xenon-date-input.git",
