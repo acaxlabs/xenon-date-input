@@ -94,10 +94,11 @@
                 var enteredDate = new Date(this.value);
                 var minDate = new Date(this.mindate);
                 var maxDate = new Date(this.maxdate);
-                return 
-                    (enteredDate >= minDate || minDate == null || minDate == undefined) 
-                &&
-                    (enteredDate <= maxDate || maxDate == null || maxDate == undefined);
+
+                var booMin = (enteredDate >= minDate || this.mindate == null || this.mindate == undefined);
+                var booMax = (enteredDate <= maxDate || this.maxdate == null || this.maxdate == undefined); 
+                return booMin && booMax;
+                   
             }
         })
     </script>
