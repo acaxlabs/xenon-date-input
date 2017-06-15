@@ -60,7 +60,7 @@
                     if (!valid) { this.$.container.invalid = true; return false; }
                 }
                 //now check date ranges
-                if (this.checkdate() == false) { this.$.container.invalid = true; return false; }
+                if (!this.isDateInRange()) { this.$.container.invalid = true; return false; }
                 //regular iron input validation
                 return this.$.input.validate();
             },
@@ -90,13 +90,14 @@
                 // if this string ends in a separator, trim it
                 this.value = newValue.replace(/[^0-9]$/, "");
             },
-            checkdate: function () {
-                if (this.mindate == null || this.maxdate == null) return false;
-
+            isDateInRange: function () {
                 var enteredDate = new Date(this.value);
                 var minDate = new Date(this.mindate);
                 var maxDate = new Date(this.maxdate);
-                if (enteredDate < minDate || enteredDate > maxDate) { return false; }
+                return 
+                    (enteredDate >= minDate || minDate == null || minDate == undefined) 
+                &&
+                    (enteredDate <= maxDate || maxDate == null || maxDate == undefined);
             }
         })
     </script>
