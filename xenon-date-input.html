@@ -94,7 +94,9 @@
                 var enteredDate = new Date(this.value);
                 var minDate = new Date(this.mindate);
                 var maxDate = new Date(this.maxdate);
-
+                enteredDate.setHours(0, 0, 0, 0);
+                minDate.setHours(0, 0, 0, 0);
+                maxDate.setHours(0, 0, 0, 0);
                 var booMin = (enteredDate >= minDate || this.mindate == null || this.mindate == undefined);
                 var booMax = (enteredDate <= maxDate || this.maxdate == null || this.maxdate == undefined); 
                 return booMin && booMax;
