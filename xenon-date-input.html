@@ -1,10 +1,17 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../paper-input/all-imports.html" />
+<link rel="import" href="../paper-styles/typography.html">
 <link rel="import" href="../iron-input/iron-input.html" />
 <link rel="import" href="../iron-form-element-behavior/iron-form-element-behavior.html">
-
 <dom-module id="xenon-date-input">
     <template>
+        <style>
+            :host{display:block;}
+            .info {
+                @apply(--paper-font-caption);
+                color: rgb(115, 115, 115);
+            }
+        </style>
         <paper-input-container id="container">
             <label hidden$="[[!label]]">[[label]]</label>
             <div class="horizontal layout">
@@ -12,7 +19,6 @@
                        id="input"
                        class="flex"
                        aria-labelledby$="[[_ariaLabelledBy]]"
-                       aria-describedby$="[[_ariaDescribedBy]]"
                        required$="[[required]]"
                        bind-value="{{value}}"
                        name$="[[name]]"
@@ -26,29 +32,35 @@
                        maxlength$="[[length]]"
                        prevent-invalid-input>
             </div>
+
             <template is="dom-if" if="[[errorMessage]]">
                 <paper-input-error id="error">[[errorMessage]]</paper-input-error>
             </template>
         </paper-input-container>
+        <!--<div hidden$="[[invalid]]">
+            <label class="info">MM/DD/YYYY</label>
+        </div>-->
     </template>
     <script>
         Polymer({
             is: 'xenon-date-input',
             behaviors: [
-              Polymer.PaperInputBehavior,
-              Polymer.IronValidatableBehavior,
-              Polymer.IronFormElementBehavior
+                Polymer.PaperInputBehavior,
+                Polymer.IronValidatableBehavior,
+                Polymer.IronFormElementBehavior
             ],
             properties: {
                 value: { type: String, notify: true, observer: '_valueChanged' },
                 mask: { type: String, value: "##/##/####" },
                 regex: { type: String, value: "^(0[1-9]|1[012])[/](0[1-9]|[12][0-9]|3[01])[/][0-9]{4}$" },
                 mindate: String,
-                maxdate: String
+                maxdate: String,
+                errorMessage: { type: String, value: "MM/DD/YYYY" },
             },
             validate: function () {
+
                 //not required return true
-                if (!this.required) return true;
+                if (!this.required && !this.value) return true;
                 //if value is null return
                 if (this.value == null) { this.$.container.invalid = true; return false; }
                 //length of value should match mask length
@@ -66,15 +78,18 @@
             },
             _valueChanged: function (newValue, oldValue) {
                 if (newValue == null) return;
-                
+
                 //check for invalid format from an auto populate
-                    var myRegexp = /(\d{4}-\d{2}-\d{2})/g;
-                    var match = myRegexp.exec(newValue);
-                    if (match) {
-                        var date = match[0];
-                        var dateArr = date.split("-");
-                        newValue = dateArr[1].concat("-", dateArr[2], "-", dateArr[0]);
-                    }
+                var myRegexp = /(\d{4}-\d{2}-\d{2})/g;
+                if ((typeof newValue) == "object") {
+                    newValue = newValue.toLocaleDateString();
+                }
+                var match = myRegexp.exec(newValue);
+                if (match) {
+                    var date = match[0];
+                    var dateArr = date.split("-");
+                    newValue = dateArr[1].concat("-", dateArr[2], "-", dateArr[0]);
+                }
                 // remove all incoming non-numeric characters
                 newValue = newValue.replace(/[^0-9]/g, "");
                 // splice the separators back into the string
@@ -94,13 +109,11 @@
                 var enteredDate = new Date(this.value);
                 var minDate = new Date(this.mindate);
                 var maxDate = new Date(this.maxdate);
-                enteredDate.setHours(0, 0, 0, 0);
-                minDate.setHours(0, 0, 0, 0);
-                maxDate.setHours(0, 0, 0, 0);
+
                 var booMin = (enteredDate >= minDate || this.mindate == null || this.mindate == undefined);
-                var booMax = (enteredDate <= maxDate || this.maxdate == null || this.maxdate == undefined); 
+                var booMax = (enteredDate <= maxDate || this.maxdate == null || this.maxdate == undefined);
                 return booMin && booMax;
-                   
+
             }
         })
     </script>
