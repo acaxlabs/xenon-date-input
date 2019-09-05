@@ -1,0 +1,204 @@
+﻿<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-input/all-imports.html" />
+<link rel="import" href="../iron-input/iron-input.html" />
+<link rel="import" href="../iron-form-element-behavior/iron-form-element-behavior.html">
+<dom-module id="xenon-date-input-sections">
+    <template>
+        <style>
+            :host{display:block;}
+            :host([focused]) { outline: none; }
+            .divider{ font-size:16px;}
+        </style>
+        <paper-input-container id="container" always-float-label="[[alwaysFloatLabel]]" auto-validate$="[[autoValidate]]" disabled$="[[disabled]]" invalid="[[invalid]]">
+            <label hidden$="[[!label]]" aria-hidden="true" for$="[[_inputId]]">[[label]]</label>
+            <div style="display:flex; align-items:center;" id$="[[_inputId]]">
+                <input is="iron-input"
+                       id$="month-[[_inputId]]"
+                       class="flex"
+                       aria-labelledby$="[[_ariaLabelledBy]]"
+                       aria-describedby$="[[_ariaDescribedBy]]"
+                       required$="[[required]]"
+                       bind-value="{{month}}"
+                       name$="month-[[name]]"
+                       disabled$="[[disabled]]"
+                       invalid="{{invalid}}"
+                       autofocus$="[[autofocus]]"
+                       inputmode$="[[inputmode]]"
+                       allowed-pattern="[0-9]"
+                       minlength="2"
+                       maxlength="2"
+                       type="tel"
+                       prevent-invalid-input
+                       pattern="(0[1-9]|1[012])">
+                <span class="divider">/</span>
+                <input is="iron-input"
+                       id$="day-[[_inputId]]"
+                       class="flex"
+                       aria-labelledby$="[[_ariaLabelledBy]]"
+                       aria-describedby$="[[_ariaDescribedBy]]"
+                       required$="[[required]]"
+                       bind-value="{{day}}"
+                       name$="day-[[name]]"
+                       disabled$="[[disabled]]"
+                       invalid="{{invalid}}"
+                       inputmode$="[[inputmode]]"
+                       allowed-pattern="[0-9]"
+                       minlength="2"
+                       maxlength="2"
+                       type="tel"
+                       prevent-invalid-input
+                       pattern="(0[1-9]|[12][0-9]|3[01])">
+                <span class="divider">/</span>
+                <input is="iron-input"
+                       id$="year-[[_inputId]]"
+                       class="flex"
+                       aria-labelledby$="[[_ariaLabelledBy]]"
+                       aria-describedby$="[[_ariaDescribedBy]]"
+                       required$="[[required]]"
+                       bind-value="{{year}}"
+                       name$="year-[[name]]"
+                       disabled$="[[disabled]]"
+                       invalid="{{invalid}}"
+                       inputmode$="[[inputmode]]"
+                       allowed-pattern="[0-9]"
+                       minlength="4"
+                       maxlength="4"
+                       prevent-invalid-input
+                       pattern="[0-9]{4}">
+
+            </div>
+            <template is="dom-if" if="[[errorMessage]]">
+                <paper-input-error aria-live="assertive">[[errorMessage]]</paper-input-error>
+            </template>
+        </paper-input-container>
+    </template>
+    <script>
+        Polymer({
+            is: 'xenon-date-input-sections',
+            behaviors: [
+                Polymer.IronFormElementBehavior,
+                Polymer.PaperInputBehavior,
+            ],
+            properties: {
+                autoValidate: { type: Boolean, notify: true, reflectToAttribute:true, value:false },
+                invalid: { type: Boolean, notify: true },
+                value: { type: String, notify: true, observer: '_valueChanged' },
+                mask: { type: String, value: "##/##/####" },
+                regex: { type: String, value: "^(0[1-9]|1[012])[/](0[1-9]|[12][0-9]|3[01])[/][0-9]{4}$" },
+                mindate: String,
+                maxdate: String,
+            },
+            ready: function () {
+                this.tabindex = "-1";
+            },
+            observers: [
+                "_onYearChanged(year)",
+                "_onDayChanged(day)",
+                "_onMonthChanged(month)"
+            ],
+            _onYearChanged: function (year) {
+
+                if (this.autoValidate && year && this.$$("#year-" + this._inputId).validate()) {
+                    this.fire("tab");
+                }
+                else if (year && (year.length == 4)) {
+                    this.fire("tab");
+                }
+            },
+            _onDayChanged: function (day) {
+                if (this.autoValidate && day && this.$$("#day-" + this._inputId).validate()) {
+                    this.$$("#year-" + this._inputId).focus();
+                }
+                else if (day && (day.length == 2)) {
+                    this.$$("#year-" + this._inputId).focus();
+                }
+            },
+            _onMonthChanged: function (month) {
+                if (this.autoValidate && month && this.$$("#month-" + this._inputId).validate()) {
+                    this.$$("#day-" + this._inputId).focus();
+                }
+                else if (month && (month.length == 2)) {
+                    this.$$("#day-" + this._inputId).focus();
+                }
+            },
+            validate: function () {
+                //not required return true
+                if (!this.required && !(this.month || this.day || this.year)) return true;
+                //if value is null return
+                var validDay = this.$$("#day-" + this._inputId).validate();
+                var validMonth = this.$$("#month-" + this._inputId).validate();
+                var validYear = this.$$("#year-" + this._inputId).validate();
+                if (!(validDay && validMonth && validYear))
+                {
+                    this.set("invalid", true);  return false;
+                }
+
+                this.set("value", this.month.concat("/", this.day, "/", this.year));
+                if (!this.value) {
+                    this.set("invalid", true); return false;
+                }
+                //length of value should match mask length
+                if (this.value.length != this.mask.length) {
+                    this.set("invalid", true); return false;
+                }
+                //if this input has a reg pattern check it as part of validation
+                if (this.regex != null) {
+                    var pattern = new RegExp(this.regex);
+                    var valid = pattern.test(this.value);
+                    if (!valid) {
+                        this.set("invalid", true); return false;
+                    }
+                }
+                //now check date ranges
+                if (!this.isDateInRange()) {
+                    this.set("invalid", true); return false;
+                }
+                //regular iron input validation
+                return true;
+            },
+            _valueChanged: function (newValue, oldValue) {
+                if (newValue == null) return;
+
+                //check for invalid format from an auto populate
+                    var myRegexp = /(\d{4}-\d{2}-\d{2})/g;
+                    var match = myRegexp.exec(newValue);
+                    if (match) {
+                        var date = match[0];
+                        var dateArr = date.split("-");
+                        newValue = dateArr[1].concat("-", dateArr[2], "-", dateArr[0]);
+                    }
+                // remove all incoming non-numeric characters
+                newValue = newValue.replace(/[^0-9]/g, "");
+                // splice the separators back into the string
+                for (var i = 0; i < this.mask.length; i++) {
+                    if (i > newValue.length) break;
+                    var char = this.mask.charAt(i);
+                    if (char != "#")
+                        newValue = newValue.slice(0, i) + char + newValue.slice(i);
+                }
+                // if the new string is longer than the mask, trim it
+                if (newValue.length > this.mask.length)
+                    newValue = newValue.slice(0, this.mask.length)
+                // if this string ends in a separator, trim it
+                this.value = newValue.replace(/[^0-9]$/, "");
+                var valArr = this.value.split("/");
+                this.set("month", valArr[0]);
+                this.set("day", valArr[1]);
+                this.set("year", valArr[2]);
+            },
+            isDateInRange: function () {
+                var enteredDate = new Date(this.value);
+                var minDate = new Date(this.mindate);
+                var maxDate = new Date(this.maxdate);
+
+                var booMin = (enteredDate >= minDate || this.mindate == null || this.mindate == undefined);
+                var booMax = (enteredDate <= maxDate || this.maxdate == null || this.maxdate == undefined);
+                return booMin && booMax;
+
+            },
+            invalidate: function () {
+
+            }
+        })
+    </script>
+</dom-module>
